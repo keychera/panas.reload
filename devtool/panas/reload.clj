@@ -85,7 +85,7 @@
 (defn start-panasin [server-to-embed opts]
   (run-server (panas-middleware server-to-embed) opts))
 
-(def app-dir (some-> (io/resource "index.html") .toURI (.resolve ".") (Path/of) .toString))
+(def app-dir (some-> (io/resource "") .toURI (Path/of) .toString))
 
 (defn -main [handler {:keys [url port] :as opts} & _]
   (let [ns-name (symbol (namespace handler))

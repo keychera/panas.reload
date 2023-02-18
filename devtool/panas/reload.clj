@@ -4,30 +4,17 @@
             [clojure.core.match :refer [match]]
             [clojure.java.io :as io]
             [clojure.string :as str]
-            [org.httpkit.server :refer [as-channel run-server send!]]
-            [pod.retrogradeorbit.bootleg.utils :as utils]
-            [pod.retrogradeorbit.hickory.select :as s]
-            serve)
+            [org.httpkit.server :refer [as-channel run-server send!]])
   (:import (java.nio.file Path)))
 
+(pods/load-pod 'retrogradeorbit/bootleg "0.1.9")
+(require '[pod.retrogradeorbit.bootleg.utils :as utils])
+(require '[pod.retrogradeorbit.hickory.select :as s])
 (pods/load-pod 'org.babashka/fswatcher "0.0.3")
 (require '[pod.babashka.fswatcher :as fw])
 
-(defonce port 4242)
-(defonce url (str "http://localhost:" port))
 (defonce panas-ch (atom nil))
 (defonce current-url (atom "/"))
-
-(defn swap-body! [embedded-server ch]
-  (println "[panas] swapping" (str url @current-url))
-  (if (nil? ch) (println "[panas][warn] no opened panas client!")
-      (send! ch {:body (let [res (embedded-server {:request-method :get :uri @current-url}) ;; assuming :get url return main html body
-                             hick-res (utils/convert-to (:body res) :hickory)
-                             [{:keys [attrs] :as body}] (s/select (s/child (s/tag :body)) hick-res)]
-                         (-> body
-                             (assoc :attrs (assoc attrs :id "akar" :hx-swap-oob "innerHtml"))
-                             (assoc :tag :div)
-                             (utils/convert-to :html)))})))
 
 (defn panas-websocket [req]
   (if (:websocket? req)
@@ -38,7 +25,7 @@
                  :on-close (fn [_ status]
                              (println "[panas] on-close" status)
                              (reset! panas-ch nil))})
-    {:status 200 :body "<h1>tidak panas disini</h1>"}))
+    {:status 200 :body "<h1>It's not panas here</h1>"}))
 
 ;; https://clojuredocs.org/clojure.core/empty_q
 (defn not-empty? [coll] (seq coll))
@@ -95,16 +82,32 @@
                       (= (:async-channel req) (:body res)) res
                       :else (with-akar res)))))))
 
-(defn start-panasin [server-to-embed]
-  (let [to-embed (-> server-to-embed panas-middleware)]
-    (run-server to-embed {:port port :thread 12})))
+(defn start-panasin [server-to-embed opts]
+  (run-server (panas-middleware server-to-embed) opts))
 
-(def app-dir (some-> (io/resource "index.html") .toURI (.resolve ".") (Path/of) .toString))
+(def app-dir (some-> (io/resource "") .toURI (Path/of) .toString))
 
-(defn -main [& _]
-  (let [router #'serve/router]
-    (println "[panas] starting")
-    (start-panasin router)
+(defn -main [handler {:keys [url port] :as opts} & _]
+  (let [ns-name (symbol (namespace handler))
+        router-name (symbol (name handler))
+        _  (require ns-name)
+        router (some-> (find-ns ns-name) (ns-resolve router-name))
+        url (str "http://" (or url "0.0.0.0") ":" (or port 8090))
+        swap-body! (fn [embedded-server ch]
+                     (println "[panas] swapping" (str url @current-url))
+                     (if (nil? ch) (println "[panas][warn] no opened panas client!")
+                         (send! ch {:body (let [res (embedded-server {:request-method :get :uri @current-url}) ;; assuming :get url return main html body
+                                                hick-res (utils/convert-to (:body res) :hickory)
+                                                [{:keys [attrs] :as body}] (s/select (s/child (s/tag :body)) hick-res)]
+                                            (-> body
+                                                (assoc :attrs (assoc attrs :id "akar" :hx-swap-oob "innerHtml"))
+                                                (assoc :tag :div)
+                                                (utils/convert-to :html)))})))]
+    (when (nil? router)
+      (println (str "[panas] `" handler "` not found!"))
+      (System/exit 1))
+    (println "[panas] starting" handler)
+    (start-panasin router opts)
     (println "[panas] watching" app-dir)
     (let [latest-event (atom nil)
           event-handler (fn [event]

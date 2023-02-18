@@ -1,5 +1,1 @@
-{:paths ["src" "resources" "devtool"]
- :pods {retrogradeorbit/bootleg {:version "0.1.9"}}
- :tasks {serve {:task serve/-main}
-         panas.reload {:extra-paths ["devtool"]
-                       :task panas.reload/-main}}}
+{:deps {io.github.keychera/panas.reload {:local/root "."}}}

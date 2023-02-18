@@ -11,7 +11,7 @@
 (defn index [& _]
   (render-file "index.html" {}))
 
-(defn router [req]
+(defn your-router [req]
   (let [paths (some-> (:uri req) (str/split #"/") rest vec)
         verb (:request-method req)]
     (match [verb paths]
@@ -21,6 +21,6 @@
 
 
 (defn -main [& _]
-  (run-server #'router {:port port :thread 12})
+  (run-server #'your-router {:port port :thread 12})
   (println "[panas] serving" url)
   @(promise))

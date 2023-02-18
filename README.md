@@ -32,7 +32,7 @@ make some changes in any file in your `src`!
 
 ## Examples
 
-WIP
+you can try some examples here: https://github.com/keychera/panas.example
 
 ## Some quirks
 

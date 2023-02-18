@@ -4,12 +4,13 @@
             [clojure.core.match :refer [match]]
             [clojure.java.io :as io]
             [clojure.string :as str]
-            [org.httpkit.server :refer [as-channel run-server send!]]
-            [pod.retrogradeorbit.bootleg.utils :as utils]
-            [pod.retrogradeorbit.hickory.select :as s]
+            [org.httpkit.server :refer [as-channel run-server send!]] 
             serve)
   (:import (java.nio.file Path)))
 
+(pods/load-pod 'retrogradeorbit/bootleg "0.1.9")
+(require '[pod.retrogradeorbit.bootleg.utils :as utils])
+(require '[pod.retrogradeorbit.hickory.select :as s])
 (pods/load-pod 'org.babashka/fswatcher "0.0.3")
 (require '[pod.babashka.fswatcher :as fw])
 

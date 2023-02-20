@@ -6,7 +6,9 @@ htmx.on("#akar", "htmx:oobBeforeSwap", event => {
         var queryString = '?reload=' + new Date().getTime();
         var links = document.getElementsByTagName("link")
         for (const idx in links) {
-            if (Object.hasOwnProperty.call(links, idx) && links[idx].rel === 'stylesheet') {
+            if (Object.hasOwnProperty.call(links, idx)
+                && links[idx].type === 'text/css'
+                && links[idx].hasAttribute('title')) {
                 links[idx].href = links[idx].href.replace(/\?.*|$/, queryString)
             }
         }

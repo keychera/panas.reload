@@ -43,7 +43,7 @@ some notes for later:
 - currently file watching only one folder
 - unicode characters might break on reload (this might be incomplete encoding information issue in http response but is still under investigation)
 - planning to make this usable in Clojure JVM, as well as making this work with other server (currently locked)
-- css refresh currently refresh everything
+- css refresh currently select all `link` tag that is `type="text/css"` and have `title` attribute (initial reasoning: so we can differentiate which css to reload)
 
 ## How it works
 

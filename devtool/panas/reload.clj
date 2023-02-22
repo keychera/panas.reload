@@ -121,7 +121,7 @@
                                   (str/ends-with? changed-file ".html") (println "[panas][html] changes on" changed-file)
                                   :else (println "[panas][other] changes on" changed-file)))
                               (swap-body! router @panas-ch)
-                              (catch Exception e
+                              (catch Throwable e
                                 (let [{:keys [cause]} (Throwable->map e)]
                                   (println) (println "[panas][ERROR]" cause) (println))))))]
       (fw/watch app-dir (fn [e] (reset! latest-event e)) {:recursive true :delay-ms 100})

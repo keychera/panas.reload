@@ -12,7 +12,7 @@ for example:
 
 ```clojure
 {:paths ["src"]
- :tasks {panas.reload {:extra-deps {io.github.keychera/panas.reload {:git/sha "e7543edbd956b5913dbe0fbf7d7f6265d325f909"}}
+ :tasks {panas.reload {:extra-deps {io.github.keychera/panas.reload {:git/sha "a210d4539472ac462ca6f8194144ba7bb245c1a0"}}
                        :requires ([panas.reload])
                        :task (panas.reload/-main 'your-namespace/your-router {:port 42042})}}}
 ```

@@ -79,6 +79,7 @@
       (when (and (= verb :get)
                  (not (:websocket? req))
                  (not (str/starts-with? uri "/css"))
+                 (not (str/includes? uri ".css"))
                  (not (str/starts-with? uri "/favicon.ico"))
                  (not (str/starts-with? uri "/static")))
         (reset! current-url uri)

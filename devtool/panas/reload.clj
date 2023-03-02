@@ -1,5 +1,6 @@
 (ns panas.reload
-  (:require [babashka.pods :as pods]
+  (:require [babashka.fs :as fs]
+            [babashka.pods :as pods]
             [clojure.core.async :refer [<! go-loop timeout]]
             [clojure.core.match :refer [match]]
             [clojure.java.io :as io]
@@ -47,10 +48,16 @@
 (def css-refresher-js {:type :element :attrs nil :tag :script
                        :content [(slurp (io/resource "panas/cssRefresher.js"))]})
 
-(defn with-akar [response]
-  (let [hick-seq (utils/convert-to (:body response) :hickory-seq)
-        html? (->> hick-seq (map :tag) (filter #(= % :html)) not-empty?)]
-    (if-not html? response
+(defn body->str [{:keys [body]}]
+  (cond (#{java.io.File} (type body)) (slurp body)
+        :else body))
+
+(defn with-akar
+  [response]
+  (let [body-str (body->str response)
+        hick-seq (utils/convert-to body-str :hickory-seq)
+        root-html? (->> hick-seq (map :tag) (filter #(= % :html)) not-empty?)]
+    (if-not root-html? response
             (let [;; conj with "\n"  ensure `partition-by` returns at least three element, destructuring [_ front] ignores it back
                   ;; TODO bug: this transformation causes emoji unicode to break
                   [[_ & front] [html] & rest] (partition-by #(= (:tag %) :html) (-> hick-seq (conj "\n")))
@@ -72,7 +79,8 @@
       (when (and (= verb :get)
                  (not (:websocket? req))
                  (not (str/starts-with? uri "/css"))
-                 (not (str/starts-with? uri "/favicon.ico")))
+                 (not (str/starts-with? uri "/favicon.ico"))
+                 (not (str/starts-with? uri "/static")))
         (reset! current-url uri)
         (println "currently on" uri))
       (match [verb paths]
@@ -80,6 +88,7 @@
         :else (let [res (handler req)]
                 (cond (:websocket? req) res
                       (= (:async-channel req) (:body res)) res
+                      (and (= (type res) java.io.File) (not= (fs/extension res) "html")) res
                       :else (with-akar res)))))))
 
 (defn start-panasin [server-to-embed opts]
@@ -97,7 +106,7 @@
                      (println "[panas] swapping" (str url @current-url))
                      (if (nil? ch) (println "[panas][warn] no opened panas client!")
                          (send! ch {:body (let [res (embedded-server {:request-method :get :uri @current-url}) ;; assuming :get url return main html body
-                                                hick-res (utils/convert-to (:body res) :hickory)
+                                                hick-res (utils/convert-to (body->str res) :hickory)
                                                 [{:keys [attrs] :as body}] (s/select (s/child (s/tag :body)) hick-res)]
                                             (-> body
                                                 (assoc :attrs (assoc attrs :id "akar" :hx-swap-oob "innerHtml"))

@@ -1,2 +1,3 @@
 {:paths ["devtool"]
- :deps {babashka/babashka.pods {:mvn/version "0.2.0"}}}
+ :deps {babashka/fs {:mvn/version "0.2.16"}
+        babashka/babashka.pods {:mvn/version "0.2.0"}}}

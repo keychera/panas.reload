@@ -1,4 +1,5 @@
 {:deps {io.github.keychera/panas.reload {:local/root "."}}
  :tasks {test {:extra-paths ["test"]
                :requires ([panas.reload])
-               :task (panas.reload/-main 'dummy/router {:port 4242} {:watch-dir "test"})}}}
+               :task (panas.reload/-main 'dummy/router {:port 4242} {:watch-dir "test"
+                                                                     :resolve-router (fn [r] (r "some custom router"))})}}}

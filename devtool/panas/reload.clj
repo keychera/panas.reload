@@ -99,7 +99,7 @@
 (defn -main
   ([handler server-opts]
    (-main handler server-opts {}))
-  ([handler {:keys [url port] :as server-opts} {:keys [watch-dir]}]
+  ([handler {:keys [url port] :as server-opts} {:keys [watch-dir resolve-router]}]
    (let [ns-name (symbol (namespace handler))
          router-name (symbol (name handler))
          _  (require ns-name)
@@ -119,7 +119,9 @@
        (println (str "[panas] `" handler "` not found!"))
        (System/exit 1))
      (println "[panas] starting" handler)
-     (start-panasin router server-opts)
+     (if resolve-router
+       (start-panasin (resolve-router router) server-opts)
+       (start-panasin router server-opts))
      (let [latest-event (atom nil)
            dir (or (some-> watch-dir fs/absolutize .toString) (default-dir))
            event-handler (fn [event]

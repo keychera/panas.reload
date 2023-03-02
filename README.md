@@ -17,10 +17,16 @@ for example:
                        :task (panas.reload/-main 'your-namespace/your-router {:port 42042})}}}
 ```
 
-the task will call `panas.reload/-main` that have the same signature as `org.httpkit.server/run-server`, which is `handler` and `opts`
+the task will call `panas.reload/-main` that have the same signature as `org.httpkit.server/run-server` plus one optional argument for configuration for panas.reload itself, which are `handler`, `server-opts`, and `server-opts`
 
 1. `handler` - a fully qualified symbol that refers to your ring-router function, e.g `'your-namespace/your-router`
-2. `opts` - a map that will be passed to httpkit as-is
+2. `server-opts` - a map that will be passed to httpkit as-is
+3. `panas-opts` is a map of the following:
+```clojure
+{:watch-dir "path/to/dir" ;; this specify the directory to watch file changes, 
+                          ;; default to the first classpath root (from the value of `(io/resource "")`)
+}
+``` 
 
 the run the task `panas.reload` with
 

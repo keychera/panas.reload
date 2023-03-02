@@ -94,50 +94,54 @@
 (defn start-panasin [server-to-embed opts]
   (run-server (panas-middleware server-to-embed) opts))
 
-(def app-dir (some-> (io/resource "") .toURI (Path/of) .toString))
+(defn default-dir [] (some-> (io/resource "") .toURI (Path/of) .toString))
 
-(defn -main [handler {:keys [url port] :as opts} & _]
-  (let [ns-name (symbol (namespace handler))
-        router-name (symbol (name handler))
-        _  (require ns-name)
-        router (some-> (find-ns ns-name) (ns-resolve router-name))
-        url (str "http://" (or url "0.0.0.0") ":" (or port 8090))
-        swap-body! (fn [embedded-server ch]
-                     (println "[panas] swapping" (str url @current-url))
-                     (if (nil? ch) (println "[panas][warn] no opened panas client!")
-                         (send! ch {:body (let [res (embedded-server {:request-method :get :uri @current-url}) ;; assuming :get url return main html body
-                                                hick-res (utils/convert-to (body->str res) :hickory)
-                                                [{:keys [attrs] :as body}] (s/select (s/child (s/tag :body)) hick-res)]
-                                            (-> body
-                                                (assoc :attrs (assoc attrs :id "akar" :hx-swap-oob "innerHtml"))
-                                                (assoc :tag :div)
-                                                (utils/convert-to :html)))})))]
-    (when (nil? router)
-      (println (str "[panas] `" handler "` not found!"))
-      (System/exit 1))
-    (println "[panas] starting" handler)
-    (start-panasin router opts)
-    (println "[panas] watching" app-dir)
-    (let [latest-event (atom nil)
-          event-handler (fn [event]
-                          (when (= :write (:type event))
-                            (println "======")
-                            (try
-                              (let [changed-file (:path event)]
-                                (cond
-                                  (str/ends-with? changed-file ".clj") (do (println "[panas][clj] reloading" changed-file)
-                                                                           (load-file changed-file))
-                                  (str/ends-with? changed-file ".html") (println "[panas][html] changes on" changed-file)
-                                  :else (println "[panas][other] changes on" changed-file)))
-                              (swap-body! router @panas-ch)
-                              (catch Throwable e
-                                (let [{:keys [cause]} (Throwable->map e)]
-                                  (println) (println "[panas][ERROR]" cause) (println))))))]
-      (fw/watch app-dir (fn [e] (reset! latest-event e)) {:recursive true :delay-ms 100})
-      (go-loop [time-unit 1]
-        (<! (timeout 100))
-        (let [[event _] (reset-vals! latest-event nil)]
-          (some-> event event-handler))
-        (recur (inc time-unit))))
-    (println "[panas] serving" url)
-    @(promise)))
+(defn -main
+  ([handler server-opts]
+   (-main handler server-opts {}))
+  ([handler {:keys [url port] :as server-opts} {:keys [watch-dir]}]
+   (let [ns-name (symbol (namespace handler))
+         router-name (symbol (name handler))
+         _  (require ns-name)
+         router (some-> (find-ns ns-name) (ns-resolve router-name))
+         url (str "http://" (or url "0.0.0.0") ":" (or port 8090))
+         swap-body! (fn [embedded-server ch]
+                      (println "[panas] swapping" (str url @current-url))
+                      (if (nil? ch) (println "[panas][warn] no opened panas client!")
+                          (send! ch {:body (let [res (embedded-server {:request-method :get :uri @current-url}) ;; assuming :get url return main html body
+                                                 hick-res (utils/convert-to (body->str res) :hickory)
+                                                 [{:keys [attrs] :as body}] (s/select (s/child (s/tag :body)) hick-res)]
+                                             (-> body
+                                                 (assoc :attrs (assoc attrs :id "akar" :hx-swap-oob "innerHtml"))
+                                                 (assoc :tag :div)
+                                                 (utils/convert-to :html)))})))]
+     (when (nil? router)
+       (println (str "[panas] `" handler "` not found!"))
+       (System/exit 1))
+     (println "[panas] starting" handler)
+     (start-panasin router server-opts)
+     (let [latest-event (atom nil)
+           dir (or (some-> watch-dir fs/absolutize .toString) (default-dir))
+           event-handler (fn [event]
+                           (when (= :write (:type event))
+                             (println "======")
+                             (try
+                               (let [changed-file (:path event)]
+                                 (cond
+                                   (str/ends-with? changed-file ".clj") (do (println "[panas][clj] reloading" changed-file)
+                                                                            (load-file changed-file))
+                                   (str/ends-with? changed-file ".html") (println "[panas][html] changes on" changed-file)
+                                   :else (println "[panas][other] changes on" changed-file)))
+                               (swap-body! router @panas-ch)
+                               (catch Throwable e
+                                 (let [{:keys [cause]} (Throwable->map e)]
+                                   (println) (println "[panas][ERROR]" cause) (println))))))]
+       (println "[panas] watching" dir)
+       (fw/watch dir (fn [e] (reset! latest-event e)) {:recursive true :delay-ms 100})
+       (go-loop [time-unit 1]
+         (<! (timeout 100))
+         (let [[event _] (reset-vals! latest-event nil)]
+           (some-> event event-handler))
+         (recur (inc time-unit))))
+     (println "[panas] serving" url)
+     @(promise))))

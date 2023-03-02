@@ -104,6 +104,10 @@
          router-name (symbol (name handler))
          _  (require ns-name)
          router (some-> (find-ns ns-name) (ns-resolve router-name))
+         _  (when (nil? router)
+              (println (str "[panas] `" handler "` not found!"))
+              (System/exit 1)) ;; not so sure whether this style of check is idiomatic
+         router (if resolve-router (resolve-router router) router)
          url (str "http://" (or url "0.0.0.0") ":" (or port 8090))
          swap-body! (fn [embedded-server ch]
                       (println "[panas] swapping" (str url @current-url))
@@ -115,13 +119,8 @@
                                                  (assoc :attrs (assoc attrs :id "akar" :hx-swap-oob "innerHtml"))
                                                  (assoc :tag :div)
                                                  (utils/convert-to :html)))})))]
-     (when (nil? router)
-       (println (str "[panas] `" handler "` not found!"))
-       (System/exit 1))
      (println "[panas] starting" handler)
-     (if resolve-router
-       (start-panasin (resolve-router router) server-opts)
-       (start-panasin router server-opts))
+     (start-panasin router server-opts)
      (let [latest-event (atom nil)
            dir (or (some-> watch-dir fs/absolutize .toString) (default-dir))
            event-handler (fn [event]

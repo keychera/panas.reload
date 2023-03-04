@@ -4,6 +4,8 @@ A hot reload for serving html (or htmx) with just babashka ('panas' is an Indone
 
 needs babashka version > 1.0.169
 
+> ⚠️ currently still figuring things out, expect a lot of changes for now
+
 ## Quick setup
 
 create a `bb.edn` file, specify source path and create a task like below (using latest git sha from the `main` branch of this repo)
@@ -13,8 +15,8 @@ for example:
 ```clojure
 {:paths ["src"]
  :tasks {panas.reload {:extra-deps {io.github.keychera/panas.reload {:git/sha "a210d4539472ac462ca6f8194144ba7bb245c1a0"}}
-                       :requires ([panas.reload])
-                       :task (panas.reload/-main 'your-namespace/your-router {:port 42042})}}}
+                       :requires ([panas.reload] your-namespace)
+                       :task (panas.reload/-main your-namespace/your-router {:port 42042})}}}
 ```
 
 the task will call `panas.reload/-main` that have the same signature as `org.httpkit.server/run-server` plus one optional argument for configuration for panas.reload itself, which are `handler`, `server-opts`, and `server-opts`

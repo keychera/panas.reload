@@ -5,7 +5,8 @@
             [clojure.core.match :refer [match]]
             [clojure.java.io :as io]
             [clojure.string :as str]
-            [org.httpkit.server :refer [as-channel run-server send!]])
+            [org.httpkit.server :refer [as-channel run-server send!]]
+            [panas.default :refer [reloadable?]])
   (:import (java.nio.file Path)))
 
 (pods/load-pod 'retrogradeorbit/bootleg "0.1.9")
@@ -76,12 +77,7 @@
     (let [uri (:uri req) ;; probably need better way to detect reloadable url
           verb (:request-method req)
           paths (vec (rest (str/split uri #"/")))]
-      (when (and (= verb :get)
-                 (not (:websocket? req))
-                 (not (str/starts-with? uri "/css"))
-                 (not (str/includes? uri ".css"))
-                 (not (str/starts-with? uri "/favicon.ico"))
-                 (not (str/starts-with? uri "/static")))
+      (when (reloadable? req)
         (reset! current-url uri)
         (println "currently on" uri))
       (match [verb paths]
@@ -92,24 +88,13 @@
                       (and (= (type res) java.io.File) (not= (fs/extension res) "html")) res
                       :else (with-akar res)))))))
 
-(defn start-panasin [server-to-embed opts]
-  (run-server (panas-middleware server-to-embed) opts))
-
 (defn default-dir [] (some-> (io/resource "") .toURI (Path/of) .toString))
 
 (defn -main
-  ([handler server-opts]
-   (-main handler server-opts {}))
-  ([handler {:keys [url port] :as server-opts} {:keys [watch-dir resolve-router]}]
-   (let [ns-name (symbol (namespace handler))
-         router-name (symbol (name handler))
-         _  (require ns-name)
-         router (some-> (find-ns ns-name) (ns-resolve router-name))
-         _  (when (nil? router)
-              (println (str "[panas] `" handler "` not found!"))
-              (System/exit 1)) ;; not so sure whether this style of check is idiomatic
-         router (if resolve-router (resolve-router router) router)
-         url (str "http://" (or url "0.0.0.0") ":" (or port 8090))
+  ([router server-opts]
+   (-main router server-opts {}))
+  ([router {:keys [url port] :as server-opts} {:keys [watch-dir]}]
+   (let [url (str "http://" (or url "0.0.0.0") ":" (or port 8090))
          swap-body! (fn [embedded-server ch]
                       (println "[panas] swapping" (str url @current-url))
                       (if (nil? ch) (println "[panas][warn] no opened panas client!")
@@ -120,8 +105,8 @@
                                                  (assoc :attrs (assoc attrs :id "akar" :hx-swap-oob "innerHtml"))
                                                  (assoc :tag :div)
                                                  (utils/convert-to :html)))})))]
-     (println "[panas] starting" handler)
-     (start-panasin router server-opts)
+     (println "[panas] starting the server")
+     (run-server (panas-middleware router) server-opts)
      (let [latest-event (atom nil)
            dir (or (some-> watch-dir fs/absolutize .toString) (default-dir))
            event-handler (fn [event]

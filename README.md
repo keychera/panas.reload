@@ -24,7 +24,6 @@ the task will call `panas.reload/-main` that have the same signature as `org.htt
 3. `panas-opts` is a map of the following:
 ```clojure
 {:watch-dir "path/to/dir" ;; this specify the directory to watch file changes, default to the first classpath root (from the value of `(io/resource "")`)
- :resolve-router (fn [custom] (custom "config")) ;; this specify a fn to resolve router if the handler is not ring-router but a fn that produce ring-router fn instead 
 }
 ``` 
 

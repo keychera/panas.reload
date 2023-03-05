@@ -9,9 +9,9 @@
          '[babashka.cli :as cli]
          'panas.reload)
 
-(let [{:keys [help dir port]
-       :or {dir "." port 42042}} (cli/parse-opts *command-line-args*)]
+(let [{:keys [help dir url port]
+       :or {dir "." url "0.0.0.0" port 42042}} (cli/parse-opts *command-line-args*)]
   (if help
     (println (:doc (meta #'serve)))
-    (panas.reload/-main (file-router (fs/path dir)) {:port port}
+    (panas.reload/-main (file-router (fs/path dir)) {:url url :port port}
                         {:watch-dir dir})))

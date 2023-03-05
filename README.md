@@ -5,11 +5,11 @@ A hot reload for serving html (or htmx) with just babashka ('panas' is an Indone
 
 needs babashka version > 1.0.169
 
-> ⚠️ currently still figuring things out, expect a lot of changes for now
+> ⚠️ currently still figuring things how to distribute codes, expect a lot of changes for now
 
 ## Quick setup
 
-### with `bbin`
+### with [`bbin`](https://github.com/babashka/bbin)
 
 If you want to live reload static assets, you can
 
@@ -17,7 +17,12 @@ If you want to live reload static assets, you can
 bbin install https://raw.githubusercontent.com/keychera/panas.reload/main/bbin/panas.file-server.clj
 panas --dir path/to/static/assets
 ```
-note: live reload will works if the file is complete html (having proper html, head, body tags)
+note: 
+1. live reload will works if the file is complete html (having html, head, and body tags)
+2. css will live reload if its in a link tag with `type='text/css'` and a `title` tag e.g: 
+```
+<link href="/styles.css" rel="stylesheet" type="text/css" title="default">
+```
 
 ### as a babashka project
 

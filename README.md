@@ -1,4 +1,5 @@
 # panas.reload
+[![bb compatible](https://raw.githubusercontent.com/babashka/babashka/master/logo/badge.svg)](https://babashka.org)
 
 A hot reload for serving html (or htmx) with just babashka ('panas' is an Indonesian word for 'hot')
 
@@ -7,6 +8,18 @@ needs babashka version > 1.0.169
 > ⚠️ currently still figuring things out, expect a lot of changes for now
 
 ## Quick setup
+
+### with `bbin`
+
+If you want to live reload static assets, you can
+
+```sh
+bbin install https://raw.githubusercontent.com/keychera/panas.reload/main/bbin/panas.file-server.clj
+panas --dir path/to/static/assets
+```
+note: live reload will works if the file is complete html (having proper html, head, body tags)
+
+### as a babashka project
 
 create a `bb.edn` file, specify source path and create a task like below (using latest git sha from the `main` branch of this repo)
 

@@ -11,20 +11,23 @@ needs babashka version > 1.0.169
 
 ### with [`bbin`](https://github.com/babashka/bbin)
 
-If you want to live reload static assets, you can
+If you just want live reload for static assets, you can
 
 ```sh
 bbin install https://raw.githubusercontent.com/keychera/panas.reload/main/bbin/panas.file-server.clj
 panas --dir path/to/static/assets
 ```
 note: 
-1. live reload will works if the file is complete html (having html, head, and body tags)
-2. css will live reload if its in a link tag with `type='text/css'` and a `title` tag e.g: 
+1. `panas.file-server.clj` is an extension of [babashka/http-server](https://github.com/babashka/http-server)
+2. live reload will works if the file is a complete html (having `<html>`, `<head>`, and `<body>` tags)
+3. css will live reload if its in a link tag with `type='text/css'` and a `title` tag e.g: 
 ```
 <link href="/styles.css" rel="stylesheet" type="text/css" title="default">
 ```
 
 ### as a babashka project
+
+if you want live reload a server that returns html and css:
 
 create a `bb.edn` file, specify source path and create a task like below (using latest git sha from the `main` branch of this repo)
 
@@ -37,11 +40,11 @@ for example:
                        :task (panas.reload/-main your-namespace/your-router {:port 42042})}}}
 ```
 
-the task will call `panas.reload/-main` that have the same signature as `org.httpkit.server/run-server` plus one optional argument for configuration for panas.reload itself, which are `handler`, `server-opts`, and `server-opts`
+the task will call `panas.reload/-main` that have the same signature as `org.httpkit.server/run-server` plus two optional argument for configuration for panas.reload itself, which are `handler`, `server-opts`, and `server-opts`
 
 1. `handler` - a fully qualified symbol that refers to your ring-router function, e.g `'your-namespace/your-router`
-2. `server-opts` - a map that will be passed to httpkit as-is
-3. `panas-opts` is a map of the following:
+2. `server-opts` - (Optional) a map that will be passed to httpkit as-is
+3. `panas-opts` - (Optional) a map of the following config keywords:
 ```clojure
 {:watch-dir "path/to/dir" ;; this specify the directory to watch file changes, default to the first classpath root (from the value of `(io/resource "")`)
 }

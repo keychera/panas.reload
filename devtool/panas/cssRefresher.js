@@ -10,9 +10,9 @@ htmx.on("#akar", "htmx:oobBeforeSwap", event => {
                 && links[idx].type === 'text/css'
                 && links[idx].hasAttribute('title')) {
                 links[idx].href = links[idx].href.replace(/\?.*|$/, queryString)
+                console.log("css [" + links[idx].href + "] refreshed!")
             }
         }
-        console.log("css refreshed!")
     }
 });
 

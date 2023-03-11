@@ -74,10 +74,10 @@
 
 (defn panas-middleware [handler]
   (fn [req]
-    (let [uri (:uri req) ;; probably need better way to detect reloadable url
+    (let [uri (:uri req) 
           verb (:request-method req)
           paths (vec (rest (str/split uri #"/")))]
-      (when (reloadable? req)
+      (when (reloadable? req) ;; need better way to detect reloadable url
         (reset! current-url uri)
         (println "currently on" uri))
       (match [verb paths]

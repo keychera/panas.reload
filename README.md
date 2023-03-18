@@ -46,7 +46,13 @@ the task will call `panas.reload/-main` that have the same signature as `org.htt
 2. `server-opts` - (Optional) a map that will be passed to httpkit as-is
 3. `panas-opts` - (Optional) a map of the following config keywords:
 ```clojure
-{:watch-dir "path/to/dir" ;; this specify the directory to watch file changes, default to the first classpath root (from the value of `(io/resource "")`)
+{:watch-dir "path/to/dir"
+ ;; this specify the directory to watch file changes, 
+ ;; default to the first classpath root (from the value of `(io/resource "")`)
+ :reloadable? predicate-fn 
+ ;; this is to override predicate that determine which url to reload, 
+ ;; the default is `panas.default/reloadable?`.
+ ;; Other than overriding, you can also extend the default using clojure built-in `every-pred` e.g. `(every-pred your-pred panas.default/reloadable?)`
 }
 ``` 
 
@@ -67,10 +73,8 @@ you can try some examples here: https://github.com/keychera/panas.example
 WIP
 
 some notes for later:
-- issues in determining reloadable urls
 - currently file watching only one folder
-- unicode characters might break on reload (this might be incomplete encoding information issue in http response but is still under investigation)
-- planning to make this usable in Clojure JVM, as well as making this work with other server (currently locked)
+- planning to make this usable in Clojure JVM, as well as making this work with other server (current impl locked to httpkit server but personally I am using this same but tweaked code on JVM with ring-jetty and works pretty well)
 - css refresh currently select all `link` tag that is `type="text/css"` and have `title` attribute (initial reasoning: so we can differentiate which css to reload)
 
 ## How it works

@@ -15,7 +15,7 @@
 (pods/load-pod 'org.babashka/fswatcher "0.0.3")
 (require '[pod.babashka.fswatcher :as fw])
 
-(defonce panas-ch (atom nil))
+(defonce panas-client (atom nil))
 (defonce current-url (atom "/"))
 
 (defn panas-websocket [req]
@@ -23,10 +23,10 @@
     (as-channel req
                 {:on-open  (fn [ch]
                              (println "[panas] on-open")
-                             (reset! panas-ch ch))
-                 :on-close (fn [_ status]
+                             (swap! panas-client assoc (hash ch) ch))
+                 :on-close (fn [ch status]
                              (println "[panas] on-close" status)
-                             (reset! panas-ch nil))})
+                             (swap! panas-client dissoc (hash ch)))})
     {:status 200 :body "<h1>It's not panas here</h1>"}))
 
 ;; https://clojuredocs.org/clojure.core/empty_q
@@ -119,7 +119,8 @@
                                                                             (load-file changed-file))
                                    (str/ends-with? changed-file ".html") (println "[panas][html] changes on" changed-file)
                                    :else (println "[panas][other] changes on" changed-file)))
-                               (swap-body! router @panas-ch)
+                               (doseq [[_ client] @panas-client]
+                                 (swap-body! router client))
                                (catch Throwable e
                                  (let [{:keys [cause]} (Throwable->map e)]
                                    (println) (println "[panas][ERROR]" cause) (println))))))]

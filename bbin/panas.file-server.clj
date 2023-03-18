@@ -2,7 +2,7 @@
 
 (require '[babashka.deps :as deps])
 (deps/add-deps {:deps '{io.github.babashka/http-server {:git/sha "90c18ea14b716503b7e6b3179acfb2f0139998ab"}
-                        io.github.keychera/panas.reload {:git/sha "23185ff18ea0d7fda44e6550b6f65b239e1e1dc0"}}})
+                        io.github.keychera/panas.reload {:git/sha "c875d4f019ab15052b034282a8a02c298c5ade10"}}})
 
 (require '[babashka.http-server :refer [file-router]]
          '[babashka.fs :as fs]

@@ -35,7 +35,7 @@ for example:
 
 ```clojure
 {:paths ["src"]
- :tasks {panas.reload {:extra-deps {io.github.keychera/panas.reload {:git/sha "a210d4539472ac462ca6f8194144ba7bb245c1a0"}}
+ :tasks {panas.reload {:extra-deps {io.github.keychera/panas.reload {:git/sha "c875d4f019ab15052b034282a8a02c298c5ade10"}}
                        :requires ([panas.reload] your-namespace)
                        :task (panas.reload/-main your-namespace/your-router {:port 42042})}}}
 ```
@@ -76,6 +76,7 @@ some notes for later:
 - currently file watching only one folder
 - planning to make this usable in Clojure JVM, as well as making this work with other server (current impl locked to httpkit server but personally I am using this same but tweaked code on JVM with ring-jetty and works pretty well)
 - css refresh currently select all `link` tag that is `type="text/css"` and have `title` attribute (initial reasoning: so we can differentiate which css to reload)
+- htmx websocket inside akar body has issues
 
 ## How it works
 

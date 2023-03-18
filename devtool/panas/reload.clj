@@ -6,7 +6,7 @@
             [clojure.java.io :as io]
             [clojure.string :as str]
             [org.httpkit.server :refer [as-channel run-server send!]]
-            [panas.default :refer [reloadable?]])
+            [panas.default :as default])
   (:import (java.nio.file Path)))
 
 (pods/load-pod 'retrogradeorbit/bootleg "0.1.9")
@@ -15,13 +15,11 @@
 (pods/load-pod 'org.babashka/fswatcher "0.0.3")
 (require '[pod.babashka.fswatcher :as fw])
 
-(defonce ^:dynamic panas-url "0.0.0.0")
-(defonce ^:dynamic panas-port 8090)
 (defonce panas-clients (atom nil))
 (defonce current-url (atom "/"))
 
 (declare panas-websocket with-akar)
-(defn panas-middleware [handler]
+(defn panas-middleware [handler {:keys [reloadable?]}]
   (fn [req]
     (let [{uri :uri verb :request-method} req
           paths (-> uri (str/split #"/") rest vec)]
@@ -123,23 +121,20 @@
 (defn -main
   ([router server-opts]
    (-main router server-opts {}))
-  ([router {:keys [url port] :as server-opts} {:keys [watch-dir]}]
-   (binding [panas-url (or url panas-url)
-             panas-port (or port panas-port)]
-     (let [root-url (str "http://" panas-url ":" panas-port)]
-       (println "[panas] starting the server")
-       (run-server (panas-middleware router) server-opts)
-       (let [latest-event (atom nil)
-             dir (or (some-> watch-dir fs/absolutize .toString) (default-dir))]
-         (println "[panas] watching" dir)
-         (fw/watch dir (fn [e] (reset! latest-event e)) {:recursive true :delay-ms 100})
-         (go-loop [time-unit 1]
-           (<! (timeout 100))
-           (let [[event _] (reset-vals! latest-event nil)]
-             (some-> event (on-event
-                            (fn []
-                              (println "[panas] swapping" (str root-url @current-url))
-                              (-> router tell-clients)))))
-           (recur (inc time-unit))))
-       (println "[panas] serving" root-url)
-       @(promise)))))
+  ([router {:keys [url port] :as server-opts} {:keys [watch-dir reloadable?]}]
+   (let [root-url (str "http://" (or url "0.0.0.0") ":" (or port 8090))]
+     (run-server (panas-middleware router {:reloadable? (or reloadable? default/reloadable?)}) server-opts)
+     (let [latest-event (atom nil)
+           dir (or (some-> watch-dir fs/absolutize .toString) (default-dir))]
+       (println "[panas] watching" dir)
+       (fw/watch dir (fn [e] (reset! latest-event e)) {:recursive true :delay-ms 100})
+       (go-loop [time-unit 1]
+         (<! (timeout 100))
+         (let [[event _] (reset-vals! latest-event nil)]
+           (some-> event (on-event
+                          (fn []
+                            (println "[panas] swapping" (str root-url @current-url))
+                            (-> router tell-clients)))))
+         (recur (inc time-unit))))
+     (println "[panas] serving" root-url)
+     @(promise))))

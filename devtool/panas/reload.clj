@@ -31,7 +31,7 @@
         :else (let [res (handler req)]
                 (cond (:websocket? req) res
                       (= (:async-channel req) (:body res)) res
-                      (and (= (type res) java.io.File) (not= (fs/extension res) "html")) res
+                      (and (= java.io.File (type (:body res))) (not= (fs/extension (:body res)) "html")) res
                       :else (with-akar res)))))))
 
 (defn panas-websocket [req]

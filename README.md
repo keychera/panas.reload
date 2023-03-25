@@ -85,3 +85,9 @@ WIP
 some notes for later:
 - uses htmx and its websocket extentsion
 - 
+
+
+## Development
+
+WIP
+- testing use etaoin + ChromeDriver 111.0.5563.64

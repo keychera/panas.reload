@@ -1,6 +1,10 @@
 (ns panas-test
-  (:require [clojure.test :refer [is testing]]))
+  (:require [etaoin.api :as e]
+            [clojure.test :refer [testing]]))
 
-(testing "some arithmetic"
-  (is (= 1 (+ 1 0)))
-  (is (= 1 (+ 2 0))))
+(testing "test with etaoin"
+  (doto (e/chrome)
+    (e/go "https://clojure.org/guides/weird_characters")
+    (e/wait-visible [{:id :preamble}])
+    (e/has-text? "NotClojure")
+    (e/quit)))

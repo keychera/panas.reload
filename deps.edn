@@ -5,4 +5,7 @@
                   :extra-deps {io.github.cognitect-labs/test-runner {:git/tag "v0.5.1" :git/sha "dfb30dd"}
                                etaoin/etaoin {:mvn/version "1.0.40"}}
                   :main-opts ["-m" "cognitect.test-runner"]
-                  :exec-fn cognitect.test-runner.api/test}}}
+                  :exec-fn cognitect.test-runner.api/test}
+           :nrepl {:extra-paths ["test"]
+                   :extra-deps {nrepl/nrepl {:mvn/version "1.0.0"}
+                                cider/cider-nrepl {:mvn/version,"0.28.5"}}}}}

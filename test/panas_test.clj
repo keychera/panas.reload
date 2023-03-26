@@ -1,10 +1,11 @@
 (ns panas-test
-  (:require [etaoin.api :as e]
-            [clojure.test :refer [testing]]))
+  (:require [clojure.test :refer [deftest is testing]]
+            [etaoin.api :as e]))
 
-(testing "test with etaoin"
-  (doto (e/chrome)
-    (e/go "https://clojure.org/guides/weird_characters")
-    (e/wait-visible [{:id :preamble}])
-    (e/has-text? "NotClojure")
-    (e/quit)))
+(deftest a-test
+  (testing "test with etaoin"
+    (doto (e/chrome)
+      (e/go "https://clojure.org/guides/weird_characters")
+      (e/wait-visible [{:id :preamble}])
+      (as-> it (is (true? (e/has-text? it "NotClojure"))))
+      (e/quit))))

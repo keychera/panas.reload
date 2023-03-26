@@ -9,6 +9,7 @@
             [panas.default :as default])
   (:import (java.nio.file Path)))
 
+(require '[clojure.zip])
 (pods/load-pod 'retrogradeorbit/bootleg "0.1.9")
 (require '[pod.retrogradeorbit.bootleg.utils :as utils])
 (require '[pod.retrogradeorbit.hickory.select :as s])

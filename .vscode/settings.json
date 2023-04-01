@@ -5,7 +5,10 @@
             "projectType": "deps.edn",
             "autoSelectForJackIn": true,
             "menuSelections": {
-                "cljAliases": ["nrepl"]
+                "cljAliases": [
+                    "test-deps",
+                    "nrepl"
+                ]
             }
         }
     ]

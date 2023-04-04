@@ -1,7 +1,8 @@
 (ns unit-test
-  (:require [clojure.java.io :as io]
+  (:require [clojure.data :refer [diff]]
+            [clojure.java.io :as io]
             [clojure.test :refer [deftest is testing]]
-            [hickory.core :refer [parse as-hickory]]
+            [hickory.core :refer [as-hickory parse]]
             [hickory.select :as s]
             [panas.reload :refer [with-akar]]))
 
@@ -21,42 +22,87 @@
      (is (should-have 1 (or htmx-src "https://unpkg.com/htmx.org@1.8.4") script-srcs))
      (is (should-have 1 (or htmx-ws-src "https://unpkg.com/htmx.org@1.8.4/dist/ext/ws.js") script-srcs)))))
 
+(defn at [hickory tag] (->> hickory (s/select (s/tag tag)) first))
+
+(defn should-have-src? [cnt src at]
+  (->> at :content
+       (filter #(= (get-in % [:attrs :src]) src))
+       count (= cnt)))
+
+(defn should-have-attrs? [attrs at]
+  (let [[_ _ both] (diff (at :attrs) attrs)]
+    (= both attrs)))
+
+(def existing-htmx "https://unpkg.com/htmx.org@1.8.6")
+(def existing-ws "https://unpkg.com/htmx.org@1.8.6/dist/ext/ws.js")
+
 (deftest test!with-akar
   (testing "Testing with-akar for"
-    (let [normal-html-file (get-html "01_normal.html")]
+    (let [normal-html-file (get-html "01_normal.html")
+          normal-html-str (slurp normal-html-file)
+          prev-hickory (-> (parse normal-html-str) as-hickory)]
       (testing "normal html"
         (testing "with File :body"
-          (htmx-installed? (with-akar {:body normal-html-file})))
+          (let [{body :body} (with-akar {:body normal-html-file})
+                hickory (->> (parse body) as-hickory)]
+            (is (should-have-src? 1 "https://unpkg.com/htmx.org@1.8.4" (at hickory :head)))
+            (is (should-have-src? 1 "https://unpkg.com/htmx.org@1.8.4/dist/ext/ws.js" (at hickory :head)))
+            (is (should-have-attrs? {:id "akar" :hx-ext "ws" :ws-connect "/panas"} (at hickory :body)))
+            (is (should-have-attrs? (:attrs prev-hickory) (at hickory :body)))))
         (testing "with String :body"
-          (htmx-installed? (with-akar {:body (slurp normal-html-file)})))))
-    (let [with-htmx-file (get-html "02_with_htmx.html")]
+          (let [{body :body} (with-akar {:body normal-html-str})
+                hickory (->> (parse body) as-hickory)]
+            (is (should-have-src? 1 "https://unpkg.com/htmx.org@1.8.4" (at hickory :head)))
+            (is (should-have-src? 1 "https://unpkg.com/htmx.org@1.8.4/dist/ext/ws.js" (at hickory :head)))
+            (is (should-have-attrs? {:id "akar" :hx-ext "ws" :ws-connect "/panas"} (at hickory :body)))
+            (is (should-have-attrs? (:attrs prev-hickory) (at hickory :body)))))))
+    (let [with-htmx-file (get-html "02_with_htmx.html")
+          with-htmx-str (slurp with-htmx-file)
+          prev-hickory (-> (parse with-htmx-str) as-hickory)]
       (testing "html with htmx"
         (testing "with File :body"
-          (htmx-installed? (with-akar {:body with-htmx-file})))
+          (let [{body :body} (with-akar {:body with-htmx-file})
+                hickory (->> (parse body) as-hickory)]
+            (is (should-have-src? 1 existing-htmx (at hickory :head)))
+            (is (should-have-src? 0 "https://unpkg.com/htmx.org@1.8.4" (at hickory :head)))
+            (is (should-have-src? 1 "https://unpkg.com/htmx.org@1.8.4/dist/ext/ws.js" (at hickory :head)))
+            (is (should-have-attrs? {:id "akar" :hx-ext "ws" :ws-connect "/panas"} (at hickory :body)))
+            (is (should-have-attrs? (:attrs prev-hickory) (at hickory :body)))))
         (testing "with String :body"
-          (htmx-installed? (with-akar {:body (slurp with-htmx-file)})))))
-    (let [with-htmx-ws-file (get-html "03_with_htmx_ws.html")]
+          (let [{body :body} (with-akar {:body with-htmx-str})
+                hickory (->> (parse body) as-hickory)]
+            (is (should-have-src? 1 existing-htmx (at hickory :head)))
+            (is (should-have-src? 0 "https://unpkg.com/htmx.org@1.8.4" (at hickory :head)))
+            (is (should-have-src? 1 "https://unpkg.com/htmx.org@1.8.4/dist/ext/ws.js" (at hickory :head)))
+            (is (should-have-attrs? {:id "akar" :hx-ext "ws" :ws-connect "/panas"} (at hickory :body)))
+            (is (should-have-attrs? (:attrs prev-hickory) (at hickory :body)))))))
+    (let [with-htmx-ws-file (get-html "03_with_htmx_ws.html")
+          with-htmx-ws-str (slurp with-htmx-ws-file)
+          prev-hickory (-> (parse with-htmx-ws-str) as-hickory)]
       (testing "html with htmx and ws"
         (testing "with File :body"
-          (htmx-installed? (with-akar {:body with-htmx-ws-file})))
+          (let [{body :body} (with-akar {:body with-htmx-ws-file})
+                hickory (->> (parse body) as-hickory)]
+            (is (should-have-src? 1 existing-htmx (at hickory :head)))
+            (is (should-have-src? 1 existing-ws (at hickory :head)))
+            (is (should-have-src? 0 "https://unpkg.com/htmx.org@1.8.4" (at hickory :head)))
+            (is (should-have-src? 0 "https://unpkg.com/htmx.org@1.8.4/dist/ext/ws.js" (at hickory :head)))
+            (is (should-have-attrs? {:id "akar" :hx-ext "ws" :ws-connect "/panas"} (at hickory :body)))
+            (is (should-have-attrs? (:attrs prev-hickory) (at hickory :body)))))
         (testing "with String :body"
-          (htmx-installed? (with-akar {:body (slurp with-htmx-ws-file)})))))
-    (let [htmx-src "https://unpkg.com/htmx.org@1.8.6" ;; the same as inside the file
-          htmx-ws-src "https://unpkg.com/htmx.org@1.8.6/dist/ext/ws.js"
-          with-htmx-ws-file (get-html "04_with_newer_htmx.html")]
-      (testing "html with newer htmx"
-        (testing "with File :body"
-          (htmx-installed? (with-akar {:body with-htmx-ws-file}) htmx-src htmx-ws-src))
-        (testing "with String :body"
-          (htmx-installed? (with-akar {:body (slurp with-htmx-ws-file)}) htmx-src htmx-ws-src))))))
+          (let [{body :body} (with-akar {:body with-htmx-ws-str})
+                hickory (->> (parse body) as-hickory)]
+            (is (should-have-src? 1 existing-htmx (at hickory :head)))
+            (is (should-have-src? 1 existing-ws (at hickory :head)))
+            (is (should-have-src? 0 "https://unpkg.com/htmx.org@1.8.4" (at hickory :head)))
+            (is (should-have-src? 0 "https://unpkg.com/htmx.org@1.8.4/dist/ext/ws.js" (at hickory :head)))
+            (is (should-have-attrs? {:id "akar" :hx-ext "ws" :ws-connect "/panas"} (at hickory :body)))
+            (is (should-have-attrs? (:attrs prev-hickory) (at hickory :body)))))))))
 
+(comment
+  (with-akar {:body (get-html "01_normal.html")}))
 
 ;; String
-
-;; html -> +htmx +ws
-;; htmx -> +ws
-;; htmx ws -> no change
-;; htmx new version -> no change
 
 ;; html no head
 ;; html no body

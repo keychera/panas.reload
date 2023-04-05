@@ -62,7 +62,13 @@
                                    :content (conj (:content body) css-refresher-js))
                   akar-html (assoc html :content (->> [head-front akar-head head-rest akar-body body-rest] (remove nil?) flatten vec))
                   akar-seq (->> [front akar-html rest] (remove nil?) flatten seq)]
-              (assoc response :body (utils/convert-to akar-seq :html))))))
+              (cond
+                (or (nil? head) (nil? body)) response
+                :else (let [akar-html (try (utils/convert-to akar-seq :html)
+                                           (catch Throwable e
+                                             (println "[panas][ERROR]" (-> e Throwable->map :cause))
+                                             nil))]
+                        (assoc response :body (or akar-html (:body response)))))))))
 
 (defn insert-htmx [head]
   (let [content (:content head)

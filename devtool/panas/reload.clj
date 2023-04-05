@@ -92,7 +92,8 @@
 
 (defn body->str [{:keys [body]}]
   (cond (#{java.io.File} (type body)) (slurp body)
-        :else body))
+        (string? body) body
+        :else nil))
 
 (defn tell-clients [router]
   (let [clients @panas-clients]

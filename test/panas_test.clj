@@ -2,7 +2,8 @@
   (:require [clojure.test :refer [deftest is testing]]
             [etaoin.api :as e]))
 
-(deftest a-test
+;; TODO 
+(deftest another-test
   (testing "test with etaoin"
     (doto (e/chrome)
       (e/go "https://clojure.org/guides/weird_characters")

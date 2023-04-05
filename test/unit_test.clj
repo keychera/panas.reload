@@ -35,14 +35,14 @@
           (is (should-have-src? 1 "https://unpkg.com/htmx.org@1.8.4" (at hickory :head)))
           (is (should-have-src? 1 "https://unpkg.com/htmx.org@1.8.4/dist/ext/ws.js" (at hickory :head)))
           (is (should-have-attrs? {:id "akar" :hx-ext "ws" :ws-connect "/panas"} (at hickory :body)))
-          (is (should-have-attrs? (:attrs prev-hickory) (at hickory :body)))))
+          (is (should-have-attrs? (get prev-hickory :attrs) (at hickory :body)))))
       (testing "with String :body"
         (let [{body :body} (with-akar {:body normal-html-str})
               hickory (->> (parse body) as-hickory)]
           (is (should-have-src? 1 "https://unpkg.com/htmx.org@1.8.4" (at hickory :head)))
           (is (should-have-src? 1 "https://unpkg.com/htmx.org@1.8.4/dist/ext/ws.js" (at hickory :head)))
           (is (should-have-attrs? {:id "akar" :hx-ext "ws" :ws-connect "/panas"} (at hickory :body)))
-          (is (should-have-attrs? (:attrs prev-hickory) (at hickory :body))))))))
+          (is (should-have-attrs? (get prev-hickory :attrs) (at hickory :body))))))))
 
 (deftest with-akar!test-existing-htmx
   (testing "Testing with-akar for html with existing htmx"
@@ -56,7 +56,7 @@
           (is (should-have-src? 0 "https://unpkg.com/htmx.org@1.8.4" (at hickory :head)))
           (is (should-have-src? 1 "https://unpkg.com/htmx.org@1.8.4/dist/ext/ws.js" (at hickory :head)))
           (is (should-have-attrs? {:id "akar" :hx-ext "ws" :ws-connect "/panas"} (at hickory :body)))
-          (is (should-have-attrs? (:attrs prev-hickory) (at hickory :body)))))
+          (is (should-have-attrs? (get prev-hickory :attrs) (at hickory :body)))))
       (testing "with String :body"
         (let [{body :body} (with-akar {:body with-htmx-str})
               hickory (->> (parse body) as-hickory)]
@@ -64,7 +64,7 @@
           (is (should-have-src? 0 "https://unpkg.com/htmx.org@1.8.4" (at hickory :head)))
           (is (should-have-src? 1 "https://unpkg.com/htmx.org@1.8.4/dist/ext/ws.js" (at hickory :head)))
           (is (should-have-attrs? {:id "akar" :hx-ext "ws" :ws-connect "/panas"} (at hickory :body)))
-          (is (should-have-attrs? (:attrs prev-hickory) (at hickory :body))))))))
+          (is (should-have-attrs? (get prev-hickory :attrs) (at hickory :body))))))))
 
 (deftest with-akar!test-existing-htmx-ws
   (testing "Testing with-akar for html with existing htmx and ws extension"
@@ -79,7 +79,7 @@
           (is (should-have-src? 0 "https://unpkg.com/htmx.org@1.8.4" (at hickory :head)))
           (is (should-have-src? 0 "https://unpkg.com/htmx.org@1.8.4/dist/ext/ws.js" (at hickory :head)))
           (is (should-have-attrs? {:id "akar" :hx-ext "ws" :ws-connect "/panas"} (at hickory :body)))
-          (is (should-have-attrs? (:attrs prev-hickory) (at hickory :body)))))
+          (is (should-have-attrs? (get prev-hickory :attrs) (at hickory :body)))))
       (testing "with String :body"
         (let [{body :body} (with-akar {:body with-htmx-ws-str})
               hickory (->> (parse body) as-hickory)]
@@ -88,9 +88,11 @@
           (is (should-have-src? 0 "https://unpkg.com/htmx.org@1.8.4" (at hickory :head)))
           (is (should-have-src? 0 "https://unpkg.com/htmx.org@1.8.4/dist/ext/ws.js" (at hickory :head)))
           (is (should-have-attrs? {:id "akar" :hx-ext "ws" :ws-connect "/panas"} (at hickory :body)))
-          (is (should-have-attrs? (:attrs prev-hickory) (at hickory :body))))))))
+          (is (should-have-attrs? (get prev-hickory :attrs) (at hickory :body))))))))
 
-;; String
+(comment
+  (with-akar {:body (get-html "03_with_htmx_ws.html")})
+  (with-akar {:body (get-html "04_no_head.html")}))
 
 ;; html no head
 ;; html no body

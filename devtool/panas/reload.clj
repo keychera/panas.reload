@@ -52,8 +52,7 @@
         hick-seq (utils/convert-to body-str :hickory-seq)
         root-html? (->> hick-seq (map :tag) (filter #(= % :html)) not-empty?)]
     (if-not root-html? response
-            (let [;; conj with "\n"  ensure `partition-by` returns at least three element, destructuring [_ front] ignores it back
-                  ;; TODO bug: this transformation causes emoji unicode to break
+            (let [;; conj with "\n"  ensure `partition-by` returns at least three element, destructuring [_ front] ignores it back 
                   [[_ & front] [html] & rest] (partition-by #(= (:tag %) :html) (-> hick-seq (conj "\n")))
                   [[_ & body-front] [body] & body-rest] (partition-by #(= (:tag %) :body) (-> (:content html) seq (conj "\n")))
                   [[_ & head-front] [head] & head-rest] (partition-by #(= (:tag %) :head) (-> body-front (conj "\n")))

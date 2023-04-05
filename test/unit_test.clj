@@ -90,17 +90,43 @@
           (is (should-have-attrs? {:id "akar" :hx-ext "ws" :ws-connect "/panas"} (at hickory :body)))
           (is (should-have-attrs? (get prev-hickory :attrs) (at hickory :body))))))))
 
+(deftest with-akar!test-no-head
+  (testing "Testing with-akar for html with no head"
+    (let [no-head-html (get-html "04_no_head.html")
+          no-head-str (slurp no-head-html)]
+      (testing "with File :body"
+        (let [{body :body} (with-akar {:body no-head-html})]
+          (is (= body no-head-html) "should have no change")))
+      (testing "with String :body"
+        (let [{body :body} (with-akar {:body no-head-str})]
+          (is (= body no-head-str) "should have no change"))))))
+
+(deftest with-akar!test-no-body
+  (testing "Testing with-akar for html with no head"
+    (let [no-body-html (get-html "05_no_body.html")
+          no-body-str (slurp no-body-html)]
+      (testing "with File :body"
+        (let [{body :body} (with-akar {:body no-body-html})]
+          (is (= body no-body-html) "should have no change")))
+      (testing "with String :body"
+        (let [{body :body} (with-akar {:body no-body-str})]
+          (is (= body no-body-str) "should have no change"))))))
+
+(deftest with-akar!test-no-html-tag
+  (testing "Testing with-akar for html with no head"
+    (let [no-htmltag-html (get-html "06_no_html_tag.html")
+          no-htmltag-str (slurp no-htmltag-html)]
+      (testing "with File :body"
+        (let [{body :body} (with-akar {:body no-htmltag-html})]
+          (is (= body no-htmltag-html) "should have no change")))
+      (testing "with String :body"
+        (let [{body :body} (with-akar {:body no-htmltag-str})]
+          (is (= body no-htmltag-str) "should have no change"))))))
+
+
 (comment
   (with-akar {:body (get-html "03_with_htmx_ws.html")})
   (with-akar {:body (get-html "04_no_head.html")}))
-
-;; html no head
-;; html no body
-;; html no head body
-;; html imbalance
-;; html no first tag
-
-;; File, the same as above but via file
 
 ;; not html at all (.css .svg .png)
 ;; not File or string (InputStream, ISeq)

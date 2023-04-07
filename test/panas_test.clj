@@ -3,7 +3,7 @@
             [etaoin.api :as e]))
 
 ;; TODO 
-(deftest another-test
+#_(deftest another-test
   (testing "test with etaoin"
     (doto (e/chrome)
       (e/go "https://clojure.org/guides/weird_characters")

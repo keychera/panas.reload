@@ -1,4 +1,4 @@
-(ns unit-test
+(ns panas.with-akar-test
   (:require [clojure.data :refer [diff]]
             [clojure.java.io :as io]
             [clojure.test :refer [deftest is testing]]

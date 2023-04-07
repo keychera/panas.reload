@@ -3,3 +3,5 @@
 .calva
 .nrepl-port
 .cpcache
+
+.DS_Store

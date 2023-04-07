@@ -9,6 +9,7 @@
             [panas.default :as default])
   (:import (java.nio.file Path)))
 
+(require '[clojure.zip])
 (pods/load-pod 'retrogradeorbit/bootleg "0.1.9")
 (require '[pod.retrogradeorbit.bootleg.utils :as utils])
 (require '[pod.retrogradeorbit.hickory.select :as s])
@@ -31,7 +32,7 @@
         :else (let [res (handler req)]
                 (cond (:websocket? req) res
                       (= (:async-channel req) (:body res)) res
-                      (and (= (type res) java.io.File) (not= (fs/extension res) "html")) res
+                      (and (= java.io.File (type (:body res))) (not= (fs/extension (:body res)) "html")) res
                       :else (with-akar res)))))))
 
 (defn panas-websocket [req]
@@ -51,8 +52,7 @@
         hick-seq (utils/convert-to body-str :hickory-seq)
         root-html? (->> hick-seq (map :tag) (filter #(= % :html)) not-empty?)]
     (if-not root-html? response
-            (let [;; conj with "\n"  ensure `partition-by` returns at least three element, destructuring [_ front] ignores it back
-                  ;; TODO bug: this transformation causes emoji unicode to break
+            (let [;; conj with "\n"  ensure `partition-by` returns at least three element, destructuring [_ front] ignores it back 
                   [[_ & front] [html] & rest] (partition-by #(= (:tag %) :html) (-> hick-seq (conj "\n")))
                   [[_ & body-front] [body] & body-rest] (partition-by #(= (:tag %) :body) (-> (:content html) seq (conj "\n")))
                   [[_ & head-front] [head] & head-rest] (partition-by #(= (:tag %) :head) (-> body-front (conj "\n")))
@@ -62,7 +62,13 @@
                                    :content (conj (:content body) css-refresher-js))
                   akar-html (assoc html :content (->> [head-front akar-head head-rest akar-body body-rest] (remove nil?) flatten vec))
                   akar-seq (->> [front akar-html rest] (remove nil?) flatten seq)]
-              (assoc response :body (utils/convert-to akar-seq :html))))))
+              (cond
+                (or (nil? head) (nil? body)) response
+                :else (let [akar-html (try (utils/convert-to akar-seq :html)
+                                           (catch Throwable e
+                                             (println "[panas][ERROR]" (-> e Throwable->map :cause))
+                                             nil))]
+                        (assoc response :body (or akar-html (:body response)))))))))
 
 (defn insert-htmx [head]
   (let [content (:content head)
@@ -86,7 +92,8 @@
 
 (defn body->str [{:keys [body]}]
   (cond (#{java.io.File} (type body)) (slurp body)
-        :else body))
+        (string? body) body
+        :else nil))
 
 (defn tell-clients [router]
   (let [clients @panas-clients]

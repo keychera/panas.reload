@@ -35,7 +35,7 @@ for example:
 
 ```clojure
 {:paths ["src"]
- :tasks {panas.reload {:extra-deps {io.github.keychera/panas.reload {:git/sha "c875d4f019ab15052b034282a8a02c298c5ade10"}}
+ :tasks {panas.reload {:extra-deps {io.github.keychera/panas.reload {:git/sha "d80ee6d6dbfa8bab2a52e87f1da0e1682cef167c"}}
                        :requires ([panas.reload] your-namespace)
                        :task (panas.reload/-main your-namespace/your-router {:port 42042})}}}
 ```

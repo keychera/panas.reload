@@ -77,6 +77,7 @@ some notes for later:
 - planning to make this usable in Clojure JVM, as well as making this work with other server (current impl locked to httpkit server but personally I am using this same but tweaked code on JVM with ring-jetty and works pretty well)
 - css refresh currently select all `link` tag that is `type="text/css"` and have `title` attribute (initial reasoning: so we can differentiate which css to reload)
 - htmx websocket inside akar body has issues
+- currently this has encoding issues on windows, refer to [#5](https://github.com/keychera/panas.reload/issues/5)
 
 ## How it works
 
@@ -84,10 +85,13 @@ WIP
 
 some notes for later:
 - uses htmx and its websocket extentsion
-- 
 
 
 ## Development
 
 WIP
-- testing use etaoin + ChromeDriver 111.0.5563.64
+- test with:
+```powershell
+    clj -M:test-deps:test
+```
+

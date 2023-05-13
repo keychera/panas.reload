@@ -6,7 +6,8 @@
         org.clojure/core.match {:mvn/version "1.0.1"}
         http-kit/http-kit {:mvn/version "2.6.0"}}
  :aliases {:test-deps {:extra-paths ["test" "test-resources"]
-                       :extra-deps {org.clj-commons/hickory {:mvn/version "0.7.3"}}}
+                       :extra-deps {org.clj-commons/hickory {:mvn/version "0.7.3"}
+                                    hiccup/hiccup {:mvn/version "2.0.0-alpha2"}}}
            :test {:extra-deps {io.github.cognitect-labs/test-runner {:git/tag "v0.5.1" :git/sha "dfb30dd"}}
                   :main-opts ["-m" "cognitect.test-runner"]
                   :exec-fn cognitect.test-runner.api/test}

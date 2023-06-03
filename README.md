@@ -35,7 +35,7 @@ for example:
 
 ```clojure
 {:paths ["src"]
- :tasks {panas.reload {:extra-deps {io.github.keychera/panas.reload {:git/sha "d80ee6d6dbfa8bab2a52e87f1da0e1682cef167c"}}
+ :tasks {panas.reload {:extra-deps {io.github.keychera/panas.reload {:git/sha "<latest-main-sha>"}}
                        :requires ([panas.reload] your-namespace)
                        :task (panas.reload/-main your-namespace/your-router {:port 42042})}}}
 ```
@@ -50,9 +50,11 @@ the task will call `panas.reload/-main` that have the same signature as `org.htt
  ;; this specify the directory to watch file changes, 
  ;; default to the first classpath root (from the value of `(io/resource "")`)
  :reloadable? predicate-fn 
- ;; this is to override predicate that determine which url to reload, 
+ ;; this is a 1-param predicate that accept a ring request
+ ;; to override the default predicate that determines which url to reload, 
  ;; the default is `panas.default/reloadable?`.
- ;; Other than overriding, you can also extend the default using clojure built-in `every-pred` e.g. `(every-pred your-pred panas.default/reloadable?)`
+ ;; Other than overriding, you can also extend the default using clojure built-in `every-pred` 
+ ;; e.g. `(every-pred your-pred panas.default/reloadable?)`
 }
 ``` 
 

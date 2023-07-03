@@ -31,6 +31,7 @@
         [:get ["panas"]] (panas-websocket req)
         :else (let [res (handler req)]
                 (cond (:websocket? req) res
+                      (not (reloadable? req)) res
                       (= (:async-channel req) (:body res)) res
                       (and (= java.io.File (type (:body res))) (not= (fs/extension (:body res)) "html")) res
                       :else (with-akar res)))))))

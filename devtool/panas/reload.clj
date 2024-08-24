@@ -126,25 +126,29 @@
 
 (defn default-dir [] (some-> (io/resource "") .toURI (Path/of) .toString))
 
-(defn panas-server [router {:keys [url port] :as server-opts} {:keys [watch-dir reloadable?]}]
-  (let [root-url (str "http://" (or url "0.0.0.0") ":" (or port 8090))]
-    (run-server (panas-middleware router {:reloadable? (or reloadable? default/reloadable?)}) server-opts)
-    (let [latest-event (atom nil)
-          dir (or (some-> watch-dir fs/absolutize .toString) (default-dir))]
-      (println "[panas] watching" dir)
-      (fw/watch dir (fn [e] (reset! latest-event e)) {:recursive true :delay-ms 100})
-      (go-loop [time-unit 1]
-        (<! (timeout 100))
-        (let [[event _] (reset-vals! latest-event nil)]
-          (some-> event (on-event
-                         (fn []
-                           (println "[panas] swapping" (str root-url @current-url))
-                           (-> router tell-clients)))))
-        (recur (inc time-unit))))
-    (println "[panas] serving" root-url)))
+(defn run-file-watcher [root-url router watch-dir]
+  (let [latest-event (atom nil)
+        dir (or (some-> watch-dir fs/absolutize .toString) (default-dir))]
+    (println "[panas] watching" dir)
+    (fw/watch dir (fn [e] (reset! latest-event e)) {:recursive true :delay-ms 100})
+    (go-loop [time-unit 1]
+      (<! (timeout 100))
+      (let [[event _] (reset-vals! latest-event nil)]
+        (some-> event (on-event
+                       (fn []
+                         (println "[panas] swapping" (str root-url @current-url))
+                         (-> router tell-clients)))))
+      (recur (inc time-unit)))))
+
+(defn panas-server [router server-opts {:keys [reloadable?]}]
+  (run-server (panas-middleware router {:reloadable? (or reloadable? default/reloadable?)}) server-opts))
 
 (defn -main
   ([router server-opts]
    (-main router server-opts {}))
-  ([router server-opts panas-opts]
-   (panas-server router server-opts panas-opts)))
+  ([router {:keys [url port] :as server-opts} {:keys [watch-dir] :as panas-opts}]
+   (let [root-url (str "http://" (or url "0.0.0.0") ":" (or port 8090))]
+     (panas-server router server-opts panas-opts)
+     (run-file-watcher root-url router watch-dir)
+     (println "[panas] serving" root-url)
+     @(promise))))

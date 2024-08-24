@@ -13,7 +13,7 @@
 (pods/load-pod 'retrogradeorbit/bootleg "0.1.9")
 (require '[pod.retrogradeorbit.bootleg.utils :as utils])
 (require '[pod.retrogradeorbit.hickory.select :as s])
-(pods/load-pod 'org.babashka/fswatcher "0.0.3")
+(pods/load-pod 'org.babashka/fswatcher "0.0.5")
 (require '[pod.babashka.fswatcher :as fw])
 
 (defonce panas-clients (atom nil))
@@ -128,9 +128,10 @@
 
 (defn run-file-watcher [root-url router watch-dir]
   (let [latest-event (atom nil)
-        dir (or (some-> watch-dir fs/absolutize .toString) (default-dir))]
-    (println "[panas] watching" dir)
-    (fw/watch dir (fn [e] (reset! latest-event e)) {:recursive true :delay-ms 100})
+        dir          (or (some-> watch-dir fs/absolutize .toString) (default-dir))
+        _            (println "[panas] watching" dir)
+        watcher      (fw/watch dir (fn [e] (reset! latest-event e)) {:recursive true
+                                                                     :delay-ms  100})]
     (go-loop [time-unit 1]
       (<! (timeout 100))
       (let [[event _] (reset-vals! latest-event nil)]
@@ -138,7 +139,8 @@
                        (fn []
                          (println "[panas] swapping" (str root-url @current-url))
                          (-> router tell-clients)))))
-      (recur (inc time-unit)))))
+      (recur (inc time-unit)))
+    (fn [] (fw/unwatch watcher))))
 
 (defn panas-server [router server-opts {:keys [reloadable?]}]
   (run-server (panas-middleware router {:reloadable? (or reloadable? default/reloadable?)}) server-opts))

@@ -1,5 +1,5 @@
 # panas.reload
-[![bb compatible](https://raw.githubusercontent.com/babashka/babashka/master/logo/badge.svg)](https://babashka.org)
+[![bb compatible](https://raw.githubusercontent.com/babashka/babashka/master/logo/badge.svg)](https://book.babashka.org#badges)
 
 A hot reload for serving html (or htmx) with just babashka ('panas' is an Indonesian word for 'hot')
 
